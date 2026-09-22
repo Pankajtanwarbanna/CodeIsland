@@ -1031,6 +1031,20 @@ private struct ApprovalBar: View {
         toolInput?["file_path"] as? String
     }
 
+    private var riskAssessment: ToolRiskAssessment {
+        ToolRiskClassifier.assess(tool: tool, input: toolInput)
+    }
+
+    private var riskColor: Color {
+        switch riskAssessment.level {
+        case .low: Color(red: 0.32, green: 0.78, blue: 0.42)
+        case .medium: Color(red: 1.0, green: 0.72, blue: 0.28)
+        case .high: Color(red: 1.0, green: 0.42, blue: 0.22)
+        case .critical: Color(red: 0.95, green: 0.20, blue: 0.24)
+        case .unknown: Color.white.opacity(0.55)
+        }
+    }
+
     private var serverName: String? {
         toolInput?["server_name"] as? String
     }
@@ -1055,6 +1069,17 @@ private struct ApprovalBar: View {
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.white.opacity(0.6))
                 }
+                Text(riskAssessment.level.rawValue.uppercased())
+                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                    .foregroundStyle(riskColor)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(riskColor.opacity(0.12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 3)
+                            .strokeBorder(riskColor.opacity(0.45), lineWidth: 0.5)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
                 if queueTotal > 1 {
                     Text("\(queuePosition)/\(queueTotal)")
                         .font(.system(size: 9, weight: .bold))
@@ -1080,6 +1105,21 @@ private struct ApprovalBar: View {
                     .contentShape(Rectangle())
                     .onTapGesture { handleCardClick() }
             }
+
+            HStack(spacing: 5) {
+                Image(systemName: "shield.lefthalf.filled")
+                    .font(.system(size: 8))
+                    .foregroundStyle(riskColor)
+                Text(riskAssessment.summary)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .lineLimit(1)
+                Spacer()
+                Text("heuristic")
+                    .font(.system(size: 8, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.3))
+            }
+            .padding(.horizontal, 14)
 
             // Pixel-style buttons — badge the global shortcut when one is enabled
             HStack(spacing: 6) {
