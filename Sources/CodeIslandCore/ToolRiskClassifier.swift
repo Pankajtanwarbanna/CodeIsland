@@ -90,7 +90,7 @@ public enum ToolRiskClassifier {
 
         let rules: [(ToolRiskLevel, String, [String])] = [
             (.critical, "can erase a disk or root filesystem", [
-                #"\brm\b(?=[^;\n|&]*\s(?:-[a-z]*r[a-z]*|--recursive)\b)(?=[^;\n|&]*\s(?:-[a-z]*f[a-z]*|--force)\b)[^;\n|&]*\s(?:--\s+)?["']?(?:/|/\*|~|\$home)["']?(?:\s|$)"#,
+                #"\brm\b(?=[^;\n|&]*\s(?:-[a-z]*r[a-z]*|--recursive)\b)(?=[^;\n|&]*\s(?:-[a-z]*f[a-z]*|--force)\b)[^;\n|&]*\s(?:--\s+)?["']?(?:/+|/+\*|~|\$home)["']?(?:\s|$)"#,
                 #"\b(?:mkfs(?:\.[a-z0-9]+)?|diskutil\s+erase|fdisk)\b"#,
                 #"\bdd\b[^\n;|&]*\bof\s*=\s*/dev/"#
             ]),
@@ -197,6 +197,13 @@ public enum ToolRiskClassifier {
             .lowercased()
         return lower == ".env"
             || lower == "credentials"
+            || lower == ".ssh"
+            || lower == "~/.ssh"
+            || lower == ".aws"
+            || lower == "~/.aws"
+            || lower == "/etc"
+            || lower == "/system"
+            || lower == "/usr"
             || lower.hasPrefix(".ssh/")
             || lower.hasPrefix("~/.ssh/")
             || lower.hasPrefix(".aws/")
@@ -206,6 +213,8 @@ public enum ToolRiskClassifier {
             || lower.hasPrefix("/usr/")
             || lower.contains("/.ssh/")
             || lower.contains("/.aws/")
+            || lower.hasSuffix("/.ssh")
+            || lower.hasSuffix("/.aws")
             || lower.hasSuffix("/.env")
             || lower.hasSuffix("/credentials")
     }

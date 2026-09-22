@@ -74,7 +74,9 @@ final class ToolRiskClassifierTests: XCTestCase {
             "rm -r -f /",
             "rm --recursive --force /",
             "rm -rf -- /",
-            "rm -rf \"/\""
+            "rm -rf \"/\"",
+            "rm -rf -- \"/\"",
+            "rm -rf //"
         ] {
             let result = ToolRiskClassifier.assessCommand(command)
             XCTAssertEqual(
@@ -144,6 +146,33 @@ final class ToolRiskClassifierTests: XCTestCase {
                 input: ["file_path": path]
             )
             XCTAssertEqual(result.level, .high, path)
+        }
+    }
+
+    func testSensitiveDirectoriesThemselvesAreHighRisk() {
+        for path in [
+            ".ssh", "~/.ssh", "/Users/dev/.ssh",
+            ".aws", "~/.aws", "/Users/dev/.aws",
+            "/etc"
+        ] {
+            let result = ToolRiskClassifier.assess(
+                tool: "Read",
+                input: ["file_path": path]
+            )
+            XCTAssertEqual(result.level, .high, path)
+        }
+    }
+
+    func testRecursivePermissionChangesAreHighRiskRegardlessOfFlagOrder() {
+        for command in [
+            "chmod -f -R 755 ./tree",
+            "chmod --verbose --recursive 755 ./tree",
+            "chown -f -R user ./tree",
+            "chown --verbose --recursive user ./tree"
+        ] {
+            let result = ToolRiskClassifier.assessCommand(command)
+            XCTAssertEqual(result.level, .high, command)
+            XCTAssertEqual(result.summary, "destructive filesystem operation")
         }
     }
 
